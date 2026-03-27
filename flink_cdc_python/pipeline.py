@@ -1,9 +1,13 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from pathlib import Path
-from typing import Union, Self, Any, Callable
+from typing import Any, Self
 
-_OptionTypes = Union[str, int, float, bool]
+# mypy: disable-error-code="empty-body"
+# Remove this after implementing empty methods
+
+_OptionTypes = str | int | float | bool
 
 
 class Pipeline:
