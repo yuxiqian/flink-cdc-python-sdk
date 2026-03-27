@@ -9,6 +9,9 @@ on:
 jobs:
   lint:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: flink_cdc_python
     steps:
       - uses: actions/checkout@v4
 
@@ -19,13 +22,13 @@ jobs:
         run: uv python install 3.12
 
       - name: Install dependencies
-        run: uv pip install --system -e "./flink_cdc_python[dev]"
+        run: uv venv && uv pip install -e ".[dev]"
 
       - name: Run ruff check
-        run: ruff check flink_cdc_python
+        run: uv run ruff check .
 
       - name: Run ruff format check
-        run: ruff format --check flink_cdc_python
+        run: uv run ruff format --check .
 
       - name: Run mypy
-        run: mypy flink_cdc_python
+        run: uv run mypy .
