@@ -26,19 +26,19 @@ Requires Python 3.12+.
 from flink_cdc_python import Pipeline
 
 # Create a simple pipeline
-pipeline = Pipeline.create(
-    'My First Pipeline',
-    parallelism=2
-).from_source(
-    'mysql',
-    hostname='localhost',
-    port=3306,
-    username='root',
-    password='******',
-    tables='my_db.users'
-).to_sink(
-    'print'
-).execute()
+pipeline = (
+    Pipeline.create("My First Pipeline", parallelism=2)
+    .from_source(
+        "mysql",
+        hostname="localhost",
+        port=3306,
+        username="root",
+        password="******",
+        tables="my_db.users",
+    )
+    .to_sink("print")
+    .execute()
+)
 ```
 
 ## Usage Examples
@@ -48,33 +48,29 @@ pipeline = Pipeline.create(
 ```python
 from flink_cdc_python import Pipeline
 
-pipeline = Pipeline.create(
-    'Sync MySQL Database to Doris',
-    parallelism=2,
-    schema_change_behavior='evolve'
-).from_source(
-    'mysql',
-    hostname='localhost',
-    port=3306,
-    username='root',
-    password='123456',
-    tables='app_db.\.*'
-).transform(
-    'app_db.orders',
-    projection='id, order_id, UPPER(product_name) as product_name',
-    filtering='id > 10 AND order_id > 100'
-).route(
-    'app_db.orders', 'ods_db.ods_orders'
-).route(
-    'app_db.shipments', 'ods_db.ods_shipments'
-).route(
-    'app_db.\.*', 'ods_db.others'
-).to_sink(
-    'doris',
-    fenodes='127.0.0.1:8030',
-    username='root',
-    password='123456'
-).execute()
+pipeline = (
+    Pipeline.create(
+        "Sync MySQL Database to Doris", parallelism=2, schema_change_behavior="evolve"
+    )
+    .from_source(
+        "mysql",
+        hostname="localhost",
+        port=3306,
+        username="root",
+        password="123456",
+        tables="app_db.\.*",
+    )
+    .transform(
+        "app_db.orders",
+        projection="id, order_id, UPPER(product_name) as product_name",
+        filtering="id > 10 AND order_id > 100",
+    )
+    .route("app_db.orders", "ods_db.ods_orders")
+    .route("app_db.shipments", "ods_db.ods_shipments")
+    .route("app_db.\.*", "ods_db.others")
+    .to_sink("doris", fenodes="127.0.0.1:8030", username="root", password="123456")
+    .execute()
+)
 ```
 
 ### Using UDFs and AI Models
@@ -83,41 +79,40 @@ pipeline = Pipeline.create(
 def format_udf(fmt, *args) -> str:
     return fmt % args
 
+
 pipeline.with_java_udf(
-    'addone',
-    'com.example.functions.AddOneFunctionClass'
-).with_python_udf(
-    'format',
-    format_udf
-).with_ai_model(
-    'CHAT',
-    'OpenAIChatModel',
-    openai_model='chat-3-small',
-    openai_host='https://api.openai.com/',
-    openai_apikey='your-api-key',
-    openai_chat_prompt='Please summarize this'
+    "addone", "com.example.functions.AddOneFunctionClass"
+).with_python_udf("format", format_udf).with_ai_model(
+    "CHAT",
+    "OpenAIChatModel",
+    openai_model="chat-3-small",
+    openai_host="https://api.openai.com/",
+    openai_apikey="your-api-key",
+    openai_chat_prompt="Please summarize this",
 ).execute()
 ```
 
 ### Reading from CSV
 
 ```python
-Pipeline.create('CSV Pipeline').from_csv(
-    '/path/to/input.csv'
-).transform(
-    'input',
-    projection='id, name, UPPER(category) as category'
-).to_csv(
-    '/path/to/output.csv'
-).execute()
+(
+    Pipeline.create("CSV Pipeline")
+    .from_csv("/path/to/input.csv")
+    .transform("input", projection="id, name, UPPER(category) as category")
+    .to_csv("/path/to/output.csv")
+    .execute()
+)
 ```
 
 ### Collecting Results to Python
 
 ```python
-Pipeline.create('Collect Pipeline').from_values(
-    [(1, 'Alice'), (2, 'Bob'), (3, 'Charlie')]
-).collect().execute()
+(
+    Pipeline.create("Collect Pipeline")
+    .from_values([(1, "Alice"), (2, "Bob"), (3, "Charlie")])
+    .collect()
+    .execute()
+)
 ```
 
 ## Contributing
