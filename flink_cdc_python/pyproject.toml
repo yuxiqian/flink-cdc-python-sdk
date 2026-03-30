@@ -8,7 +8,14 @@ dependencies = []
 dev = [
     "mypy>=1.10",
     "ruff>=0.4",
+    "pytest>=8.0",
 ]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+addopts = "-v"
 
 [tool.mypy]
 python_version = "3.12"
