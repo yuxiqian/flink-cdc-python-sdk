@@ -25,16 +25,16 @@ class FlinkCdcVersion:
     minor: int
     patch: int = 0
 
-    _VERSION_PATTERN = re.compile(r"^(\d+)\.(\d+)(?:\.(\d+))?")
+    _VERSION_PATTERN = re.compile(r'^(\d+)\.(\d+)(?:\.(\d+))?')
 
     # Known stable versions
     KNOWN_VERSIONS = [
-        "3.3.0",
-        "3.2.0",
-        "3.1.1",
-        "3.1.0",
-        "3.0.1",
-        "3.0.0",
+        '3.3.0',
+        '3.2.0',
+        '3.1.1',
+        '3.1.0',
+        '3.0.1',
+        '3.0.0',
     ]
 
     @classmethod
@@ -53,7 +53,7 @@ class FlinkCdcVersion:
         """
         match = cls._VERSION_PATTERN.match(version_str.strip())
         if not match:
-            raise ValueError(f"Invalid Flink CDC version: {version_str}")
+            raise ValueError(f'Invalid Flink CDC version: {version_str}')
 
         major = int(match.group(1))
         minor = int(match.group(2))
@@ -64,22 +64,19 @@ class FlinkCdcVersion:
     @property
     def version_string(self) -> str:
         """Return the version string."""
-        return f"{self.major}.{self.minor}.{self.patch}"
+        return f'{self.major}.{self.minor}.{self.patch}'
 
     @property
     def download_name(self) -> str:
         """Return the download file name pattern."""
-        return f"flink-cdc-{self.version_string}-bin.tar.gz"
+        return f'flink-cdc-{self.version_string}-bin.tar.gz'
 
     @property
     def download_url(self) -> str:
         """Return the Apache archive download URL."""
-        return (
-            f"https://archive.apache.org/dist/flink/flink-cdc-{self.version_string}/"
-            f"{self.download_name}"
-        )
+        return f'https://archive.apache.org/dist/flink/flink-cdc-{self.version_string}/{self.download_name}'
 
-    def maven_url(self, artifact: str, scala_version: str = "2.12") -> str:
+    def maven_url(self, artifact: str, scala_version: str = '2.12') -> str:
         """
         Generate Maven Central URL for a specific artifact.
 
@@ -91,8 +88,8 @@ class FlinkCdcVersion:
             Maven Central URL for the artifact
         """
         return (
-            f"https://repo1.maven.org/maven2/org/apache/flink/{artifact}/"
-            f"{self.version_string}/{artifact}-{self.version_string}-{scala_version}.jar"
+            f'https://repo1.maven.org/maven2/org/apache/flink/{artifact}/'
+            f'{self.version_string}/{artifact}-{self.version_string}-{scala_version}.jar'
         )
 
     def __str__(self) -> str:

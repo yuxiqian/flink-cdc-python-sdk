@@ -10,4 +10,4 @@ This module handles:
 from .env import Env
 from .version import FlinkCdcVersion
 
-__all__ = ["Env", "FlinkCdcVersion"]
+__all__ = ['Env', 'FlinkCdcVersion']

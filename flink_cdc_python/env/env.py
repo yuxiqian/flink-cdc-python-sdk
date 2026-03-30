@@ -19,7 +19,7 @@ import tempfile
 import urllib.request
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from .version import FlinkCdcVersion
 
@@ -29,7 +29,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 # Default directory for environment storage
-DEFAULT_ENV_DIR = ".env"
+DEFAULT_ENV_DIR = '.env'
 
 
 @dataclass
@@ -70,14 +70,14 @@ class Env:
         if self._flink_cdc_path:
             return self._flink_cdc_path
         if self.flink_cdc_version:
-            return self.env_dir / f"flink-cdc-{self.flink_cdc_version.version_string}"
+            return self.env_dir / f'flink-cdc-{self.flink_cdc_version.version_string}'
         return None
 
     @property
     def flink_cdc_lib(self) -> Path | None:
         """Return the path to Flink CDC lib directory."""
         if self.flink_cdc_path:
-            lib_path = self.flink_cdc_path / "lib"
+            lib_path = self.flink_cdc_path / 'lib'
             lib_path.mkdir(parents=True, exist_ok=True)
             return lib_path
         return None
@@ -97,7 +97,7 @@ class Env:
         """
         # Validate Flink home
         if not self.flink_home.exists():
-            raise FileNotFoundError(f"Flink home does not exist: {self.flink_home}")
+            raise FileNotFoundError(f'Flink home does not exist: {self.flink_home}')
 
         self.env_dir.mkdir(parents=True, exist_ok=True)
 
@@ -111,11 +111,11 @@ class Env:
         cdc_path = self.flink_cdc_path
         if not cdc_path:
             return False
-        return cdc_path.exists() and (cdc_path / "lib").exists()
+        return cdc_path.exists() and (cdc_path / 'lib').exists()
 
     def _setup_flink_cdc(self) -> None:
         """Download and set up Flink CDC."""
-        logger.info("Setting up Flink CDC %s...", self.flink_cdc_version)
+        logger.info('Setting up Flink CDC %s...', self.flink_cdc_version)
 
         archive_path = self.env_dir / self.flink_cdc_version.download_name
         extract_path = self.env_dir
@@ -125,7 +125,7 @@ class Env:
             self._download_file(
                 self.flink_cdc_version.download_url,
                 archive_path,
-                f"Flink CDC {self.flink_cdc_version}",
+                f'Flink CDC {self.flink_cdc_version}',
             )
 
         # Extract
@@ -134,18 +134,18 @@ class Env:
         # Set executable permissions
         cdc_path = self.flink_cdc_path
         if cdc_path:
-            bin_path = cdc_path / "bin"
+            bin_path = cdc_path / 'bin'
             if bin_path.exists():
                 self._set_executable_permissions(bin_path)
 
-        logger.info("Flink CDC %s setup complete", self.flink_cdc_version)
+        logger.info('Flink CDC %s setup complete', self.flink_cdc_version)
 
     def _ensure_setup(self) -> None:
         """Ensure Flink CDC is set up (auto-setup if needed)."""
         if not self._is_flink_cdc_ready():
             self._setup_flink_cdc()
 
-    def add_connector(self, connector: str, scala_version: str = "2.12") -> Path:
+    def add_connector(self, connector: str, scala_version: str = '2.12') -> Path:
         """
         Add a connector JAR to the Flink CDC lib directory.
 
@@ -161,21 +161,21 @@ class Env:
 
         lib_path = self.flink_cdc_lib
         if not lib_path:
-            raise ValueError("Flink CDC lib directory not available")
+            raise ValueError('Flink CDC lib directory not available')
 
         # Generate Maven URL
         url = self.flink_cdc_version.maven_url(connector, scala_version)
-        jar_name = f"{connector}-{self.flink_cdc_version.version_string}-{scala_version}.jar"
+        jar_name = f'{connector}-{self.flink_cdc_version.version_string}-{scala_version}.jar'
         jar_path = lib_path / jar_name
 
         if not jar_path.exists():
-            logger.info("Downloading connector %s...", connector)
+            logger.info('Downloading connector %s...', connector)
             self._download_file(url, jar_path, connector)
 
         self._connectors[connector] = jar_path
         return jar_path
 
-    def add_connectors(self, connectors: list[str], scala_version: str = "2.12") -> list[Path]:
+    def add_connectors(self, connectors: list[str], scala_version: str = '2.12') -> list[Path]:
         """
         Add multiple connector JARs.
 
@@ -211,58 +211,58 @@ class Env:
         # Add connector JARs from lib directory
         lib_path = self.flink_cdc_lib
         if lib_path and lib_path.exists():
-            for jar_path in lib_path.glob("*.jar"):
+            for jar_path in lib_path.glob('*.jar'):
                 all_jars.append(str(jar_path))
 
         return all_jars
 
     @staticmethod
-    def _download_file(url: str, dest: Path, description: str = "file") -> None:
+    def _download_file(url: str, dest: Path, description: str = 'file') -> None:
         """Download a file from URL."""
-        logger.info("Downloading %s from %s", description, url)
+        logger.info('Downloading %s from %s', description, url)
 
         try:
             # Create a temporary file and then rename for atomicity
-            temp_path = dest.with_suffix(".tmp")
+            temp_path = dest.with_suffix('.tmp')
 
             def progress_hook(block_num: int, block_size: int, total_size: int) -> None:
                 if total_size > 0:
                     downloaded = block_num * block_size
                     percent = min(100, downloaded * 100 // total_size)
                     if block_num % 100 == 0:  # Log every 100 blocks
-                        logger.debug("Downloaded %d%%", percent)
+                        logger.debug('Downloaded %d%%', percent)
 
             urllib.request.urlretrieve(url, temp_path, progress_hook)
             temp_path.rename(dest)
-            logger.info("Download complete: %s", dest)
+            logger.info('Download complete: %s', dest)
 
         except Exception as e:
-            logger.error("Failed to download %s: %s", description, e)
-            raise RuntimeError(f"Failed to download {description} from {url}: {e}") from e
+            logger.error('Failed to download %s: %s', description, e)
+            raise RuntimeError(f'Failed to download {description} from {url}: {e}') from e
 
     @staticmethod
     def _extract_archive(archive_path: Path, dest: Path) -> None:
         """Extract a tar.gz or zip archive."""
-        logger.info("Extracting %s to %s", archive_path, dest)
+        logger.info('Extracting %s to %s', archive_path, dest)
 
-        if archive_path.suffix == ".zip":
+        if archive_path.suffix == '.zip':
             import zipfile
 
-            with zipfile.ZipFile(archive_path, "r") as zf:
+            with zipfile.ZipFile(archive_path, 'r') as zf:
                 zf.extractall(dest)
-        elif archive_path.name.endswith(".tar.gz") or archive_path.name.endswith(".tgz"):
-            with tarfile.open(archive_path, "r:gz") as tf:
+        elif archive_path.name.endswith('.tar.gz') or archive_path.name.endswith('.tgz'):
+            with tarfile.open(archive_path, 'r:gz') as tf:
                 tf.extractall(dest)
         else:
-            raise ValueError(f"Unsupported archive format: {archive_path}")
+            raise ValueError(f'Unsupported archive format: {archive_path}')
 
-        logger.info("Extraction complete")
+        logger.info('Extraction complete')
 
     @staticmethod
     def _set_executable_permissions(bin_dir: Path) -> None:
         """Set executable permissions on scripts in bin directory."""
         system = platform.system()
-        if system == "Windows":
+        if system == 'Windows':
             return  # Windows doesn't need executable permissions
 
         for script in bin_dir.iterdir():
@@ -340,14 +340,14 @@ class Env:
         """
         # Validate Flink home
         if not self.flink_home.exists():
-            raise FileNotFoundError(f"Flink home does not exist: {self.flink_home}")
+            raise FileNotFoundError(f'Flink home does not exist: {self.flink_home}')
 
         # Auto-setup Flink CDC if needed
         self._ensure_setup()
 
         cdc_home = self.flink_cdc_path
         if not cdc_home:
-            raise ValueError("Flink CDC path not available after setup.")
+            raise ValueError('Flink CDC path not available after setup.')
 
         # Save YAML file
         yaml_path: Path
@@ -404,9 +404,9 @@ class Env:
             shutil.rmtree(self.flink_cdc_path)
 
         # Clean archives
-        for archive in self.env_dir.glob("*.tgz"):
+        for archive in self.env_dir.glob('*.tgz'):
             archive.unlink()
-        for archive in self.env_dir.glob("*.tar.gz"):
+        for archive in self.env_dir.glob('*.tar.gz'):
             archive.unlink()
-        for archive in self.env_dir.glob("*.zip"):
+        for archive in self.env_dir.glob('*.zip'):
             archive.unlink()
