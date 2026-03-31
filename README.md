@@ -23,9 +23,15 @@ Requires Python 3.12+.
 ## Quick Start
 
 ```python
-from flink_cdc_python import Pipeline
+from flink_cdc_python import Env, Pipeline
 
-# Create a simple pipeline
+# Create an environment
+env = Env.create(
+    flink_cdc_version="3.3.0",
+    flink_home="/path/to/flink-2.0.0",
+)
+
+# Create a simple pipeline and execute
 pipeline = (
     Pipeline.create("My First Pipeline", parallelism=2)
     .from_source(
@@ -34,11 +40,12 @@ pipeline = (
         port=3306,
         username="root",
         password="******",
-        tables="my_db.users",
+        tables=r"my_db.\.*",
     )
     .to_sink("print")
-    .execute()
 )
+
+env.execute(pipeline)
 ```
 
 ## Usage Examples
@@ -46,7 +53,12 @@ pipeline = (
 ### MySQL to Doris Sync with Transformations
 
 ```python
-from flink_cdc_python import Pipeline
+from flink_cdc_python import Env, Pipeline
+
+env = Env.create(
+    flink_cdc_version="3.3.0",
+    flink_home="/path/to/flink-2.0.0",
+)
 
 pipeline = (
     Pipeline.create(
@@ -58,61 +70,94 @@ pipeline = (
         port=3306,
         username="root",
         password="123456",
-        tables="app_db.\.*",
+        tables=r"app_db.\.*",
     )
     .transform(
-        "app_db.orders",
+        r"app_db.orders",
         projection="id, order_id, UPPER(product_name) as product_name",
         filtering="id > 10 AND order_id > 100",
     )
     .route("app_db.orders", "ods_db.ods_orders")
     .route("app_db.shipments", "ods_db.ods_shipments")
-    .route("app_db.\.*", "ods_db.others")
+    .route(r"app_db\..*", "ods_db.others")
     .to_sink("doris", fenodes="127.0.0.1:8030", username="root", password="123456")
-    .execute()
 )
+
+env.execute(pipeline)
 ```
 
 ### Using UDFs and AI Models
 
 ```python
-def format_udf(fmt, *args) -> str:
-    return fmt % args
+from flink_cdc_python import Env, Pipeline
 
+env = Env.create(
+    flink_cdc_version="3.3.0",
+    flink_home="/path/to/flink-2.0.0",
+)
 
-pipeline.with_java_udf(
-    "addone", "com.example.functions.AddOneFunctionClass"
-).with_python_udf("format", format_udf).with_ai_model(
-    "CHAT",
-    "OpenAIChatModel",
-    openai_model="chat-3-small",
-    openai_host="https://api.openai.com/",
-    openai_apikey="your-api-key",
-    openai_chat_prompt="Please summarize this",
-).execute()
+pipeline = (
+    Pipeline.create("MySQL to Doris with UDF", parallelism=2)
+    .from_source(
+        "mysql",
+        hostname="localhost",
+        port=3306,
+        username="root",
+        password="123456",
+        tables=r"app_db.\.*",
+    )
+    .with_java_udf("addone", "com.example.functions.AddOneFunctionClass")
+    .with_ai_model(
+        "CHAT",
+        "OpenAIChatModel",
+        openai_model="gpt-3.5-turbo",
+        openai_host="https://api.openai.com/",
+        openai_apikey="your-api-key",
+        openai_chat_prompt="Please summarize this",
+    )
+    .to_sink("doris", fenodes="127.0.0.1:8030", username="root", password="")
+)
+
+env.execute(pipeline)
 ```
 
 ### Reading from CSV
 
 ```python
-(
+from flink_cdc_python import Env, Pipeline
+
+env = Env.create(
+    flink_cdc_version="3.3.0",
+    flink_home="/path/to/flink-2.0.0",
+)
+
+pipeline = (
     Pipeline.create("CSV Pipeline")
     .from_csv("/path/to/input.csv")
     .transform("input", projection="id, name, UPPER(category) as category")
     .to_csv("/path/to/output.csv")
-    .execute()
 )
+
+env.execute(pipeline)
 ```
 
 ### Collecting Results to Python
 
 ```python
-(
+from flink_cdc_python import Env, Pipeline
+
+env = Env.create(
+    flink_cdc_version="3.3.0",
+    flink_home="/path/to/flink-2.0.0",
+)
+
+pipeline = (
     Pipeline.create("Collect Pipeline")
     .from_values([(1, "Alice"), (2, "Bob"), (3, "Charlie")])
     .collect()
-    .execute()
 )
+
+env.execute(pipeline)
 ```
 
 ## Contributing

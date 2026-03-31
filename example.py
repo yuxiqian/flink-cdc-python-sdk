@@ -200,7 +200,7 @@ for section, content in d.items():
 # Create multiple pipelines (pure YAML generators)
 pipeline_mysql_to_doris = (
     Pipeline.create("MySQL to Doris", parallelism=2)
-    .from_source("mysql", hostname="localhost", tables=r"db\..*")
+    .from_source("mysql", hostname="localhost", tables=r"db.\.*")
     .to_sink("doris", fenodes="127.0.0.1:8030")
 )
 
